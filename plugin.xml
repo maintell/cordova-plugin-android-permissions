@@ -26,6 +26,11 @@
       </feature>
     </config-file>
 
+    <config-file parent="/*" target="AndroidManifest.xml">
+        <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+        <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    </config-file>
+
     <source-file src="src/android/com/android/plugins/Permissions.java" target-dir="src/com/android/plugins"/>
   </platform>
 
