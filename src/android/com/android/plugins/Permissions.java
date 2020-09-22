@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
@@ -29,6 +30,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static android.content.pm.PackageManager.MATCH_DEFAULT_ONLY;
+import static android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_DISABLED;
+import static android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED;
+import static android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_WHITELISTED;
 
 /**
  * Created by JasonYang on 2016/3/11.
@@ -43,10 +47,22 @@ public class Permissions extends CordovaPlugin {
     private static final String requestIgnoreBatteryOptimizations = "requestIgnoreBatteryOptimizations";
     private static final String isIgnoringBatteryOptimizations = "isIgnoringBatteryOptimizations";
 
+    private static final String requestIgnoreBackgroudDataRestrictions = "requestIgnoreBackgroudDataRestrictions";
+    private static final String isIgnoringBackgroudDataRestrictions = "isIgnoringBackgroudDataRestrictions";
+
+    private static final String requestPowerSavingPolicy = "requestPowerSavingPolicy";
+
+    private static final String getAppDetailSetting = "getAppDetailSetting";
+
+
+    private static final String requestBatterySettings = "requestBatterySettings";
+
+
     private static final String dnd = "dnd";
 
     private static final String KeepScreenWakeOn = "KeepScreenWakeOn";
     private static final String clearScreenWakeOn = "clearScreenWakeOn";
+    private static final String getScreenWakeStatus = "getScreenWakeStatus";
 
     private static final String openAppStart = "openAppStart";
 
@@ -69,7 +85,58 @@ public class Permissions extends CordovaPlugin {
                 }
             });
             return true;
-        } else if (KeepScreenWakeOn.equals(action)) {
+        }else if (requestBatterySettings.equals(action)) {
+            cordova.getActivity().runOnUiThread(new Runnable() {
+                public void run() {
+                    try {
+                        requestBatterySettings();
+                        callbackContext.success("ok");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        JSONObject returnObj = new JSONObject();
+                        addProperty(returnObj, KEY_ERROR, KeepScreenWakeOn);
+                        addProperty(returnObj, KEY_MESSAGE, "requestBatterySettings failed.");
+                        callbackContext.error(returnObj);
+                        permissionsCallback = null;
+                    }
+                }
+            });
+            return true;
+        }else if (getAppDetailSetting.equals(action)) {
+            cordova.getActivity().runOnUiThread(new Runnable() {
+                public void run() {
+                    try {
+                        getAppDetailSetting();
+                        callbackContext.success("ok");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        JSONObject returnObj = new JSONObject();
+                        addProperty(returnObj, KEY_ERROR, KeepScreenWakeOn);
+                        addProperty(returnObj, KEY_MESSAGE, "getScreenWakeStatus failed.");
+                        callbackContext.error(returnObj);
+                        permissionsCallback = null;
+                    }
+                }
+            });
+            return true;
+        } else if (getScreenWakeStatus.equals(action)) {
+            cordova.getActivity().runOnUiThread(new Runnable() {
+                public void run() {
+                    try {
+                        int flag = getScreenWakeStatus();
+                        callbackContext.success(flag);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        JSONObject returnObj = new JSONObject();
+                        addProperty(returnObj, KEY_ERROR, KeepScreenWakeOn);
+                        addProperty(returnObj, KEY_MESSAGE, "getScreenWakeStatus failed.");
+                        callbackContext.error(returnObj);
+                        permissionsCallback = null;
+                    }
+                }
+            });
+            return true;
+        }else if (KeepScreenWakeOn.equals(action)) {
             cordova.getActivity().runOnUiThread(new Runnable() {
                 public void run() {
                     try {
@@ -97,6 +164,23 @@ public class Permissions extends CordovaPlugin {
                         JSONObject returnObj = new JSONObject();
                         addProperty(returnObj, KEY_ERROR, clearScreenWakeOn);
                         addProperty(returnObj, KEY_MESSAGE, "clearScreenWakeOn failed.");
+                        callbackContext.error(returnObj);
+                        permissionsCallback = null;
+                    }
+                }
+            });
+            return true;
+        }else if (requestPowerSavingPolicy.equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        requestPowerSavingPolicy();
+                        callbackContext.success("ok");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        JSONObject returnObj = new JSONObject();
+                        addProperty(returnObj, KEY_ERROR, ACTION_REQUEST_PERMISSION);
+                        addProperty(returnObj, KEY_MESSAGE, "requestPowerSavingPolicy denied.");
                         callbackContext.error(returnObj);
                         permissionsCallback = null;
                     }
@@ -139,12 +223,49 @@ public class Permissions extends CordovaPlugin {
                         if(argString.contains("priority")){
                             DNDpriority(callbackContext);
                         }
+                        if(argString.contains("status")){
+                            int status = DNDstatus();
+                            callbackContext.success(status);
+                        }
 
                     } catch (Exception e) {
                         e.printStackTrace();
                         JSONObject returnObj = new JSONObject();
                         addProperty(returnObj, KEY_ERROR, ACTION_REQUEST_PERMISSION);
                         addProperty(returnObj, KEY_MESSAGE, "Request permission has been denied.");
+                        callbackContext.error(returnObj);
+                        permissionsCallback = null;
+                    }
+                }
+            });
+            return true;
+        } else if (isIgnoringBackgroudDataRestrictions.equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        boolean result = isIgnoringBackgroudDataRestrictions();
+                        callbackContext.success(result?1:0);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        JSONObject returnObj = new JSONObject();
+                        addProperty(returnObj, KEY_ERROR, ACTION_REQUEST_PERMISSION);
+                        addProperty(returnObj, KEY_MESSAGE, "isIgnoringBackgroudDataRestrictions denied.");
+                        callbackContext.error(returnObj);
+                        permissionsCallback = null;
+                    }
+                }
+            });
+            return true;
+        }else if (requestIgnoreBackgroudDataRestrictions.equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        requestIgnoreBackgroudDataRestrictions(callbackContext, args);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        JSONObject returnObj = new JSONObject();
+                        addProperty(returnObj, KEY_ERROR, ACTION_REQUEST_PERMISSION);
+                        addProperty(returnObj, KEY_MESSAGE, "requestIgnoreBackgroudDataRestrictions denied.");
                         callbackContext.error(returnObj);
                         permissionsCallback = null;
                     }
@@ -204,49 +325,153 @@ public class Permissions extends CordovaPlugin {
         return false;
     }
 
+    private void requestBatterySettings(){
+        Activity activity = cordova.getActivity();
+        PackageManager pm = activity.getPackageManager();
+        for (Intent intent : getBatteryIntents())
+        {
+            if (pm.queryIntentActivities(intent, MATCH_DEFAULT_ONLY).size()>0)
+            {
+                showToast(cordova.getActivity(),"请设置省电策略为无限制");
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setData(Uri.parse("package:" + this.cordova.getActivity().getPackageName()));
+                intent.putExtra("package_name", this.cordova.getActivity().getPackageName());
+                //intent.putExtra("package_label", this.cordova.getActivity().getPackageManager().get);
+                activity.startActivity(intent);
+                break;
+            }
+        }
+    }
 
-//    @Override
-//    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-//        this.cordova.getActivity().getApplication().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
-//
-//            @Override
-//            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-//
-//            }
-//
-//            @Override
-//            public void onActivityStarted(Activity activity) {
-//
-//            }
-//
-//            @Override
-//            public void onActivityResumed(Activity activity) {
-//
-//            }
-//
-//            @Override
-//            public void onActivityPaused(Activity activity) {
-//
-//            }
-//
-//            @Override
-//            public void onActivityStopped(Activity activity) {
-//
-//            }
-//
-//            @Override
-//            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-//
-//            }
-//
-//            @Override
-//            public void onActivityDestroyed(Activity activity) {
-//
-//            }
-//        });
-//        super.initialize(cordova, webView);
-//    }
+    private List<Intent> getBatteryIntents(){
+        return Arrays.asList(
+                // 小米
+                new Intent().setComponent(ComponentName.unflattenFromString("com.miui.powerkeeper/.ui.HiddenAppsContainerManagementActivity")),
+                // 华为
+                new Intent().setComponent(ComponentName.unflattenFromString("com.huawei.systemmanager/.power.ui.HwPowerManagerActivity")),
 
+                // 魅族
+                new Intent().setComponent(ComponentName.unflattenFromString("com.meizu.safe/.SecurityCenterActivity")),
+                // 三星
+                new Intent().setComponent(new ComponentName("com.samsung.android.sm_cn","com.samsung.android.sm.ui.battery.AppSleepListActivity")),
+                new Intent().setComponent(new ComponentName("com.samsung.android.sm_cn", "com.samsung.android.sm.ui.battery.BatteryActivity")),
+                new Intent().setComponent(new ComponentName("com.samsung.android.sm","com.samsung.android.sm.ui.battery.AppSleepListActivity")),
+                new Intent().setComponent(new ComponentName("com.samsung.android.sm","com.samsung.android.sm.ui.battery.BatteryActivity")),
+                new Intent().setComponent(new ComponentName("com.samsung.android.lool","com.samsung.android.sm.battery.ui.BatteryActivity")),
+                new Intent().setComponent(new ComponentName("com.samsung.android.lool","com.samsung.android.sm.ui.battery.BatteryActivity")),
+                new Intent().setComponent(new ComponentName("com.samsung.android.sm","com.samsung.android.sm.ui.battery.BatteryActivity")),
+                new Intent().setComponent(new ComponentName("com.samsung.android.sm_cn","com.samsung.android.sm.ui.cstyleboard.SmartManagerDashBoardActivity")),
+                // oppo
+                new Intent().setComponent(ComponentName.unflattenFromString("com.coloros.safecenter/.appfrozen.activity.AppFrozenSettingsActivity")),
+                new Intent().setComponent(new ComponentName("com.coloros.oppoguardelf","com.coloros.powermanager.fuelgaue.PowerUsageModelActivity")),
+                new Intent().setComponent(new ComponentName("com.coloros.oppoguardelf","com.coloros.powermanager.fuelgaue.PowerSaverModeActivity")),
+                new Intent().setComponent(new ComponentName("com.coloros.oppoguardelf","com.coloros.powermanager.fuelgaue.PowerConsumptionActivity")),
+                new Intent().setComponent(ComponentName.unflattenFromString("com.oppo.safe/.SecureSafeMainActivity")),
+                // vivo
+                new Intent().setComponent(new ComponentName("com.vivo.abe","com.vivo.applicationbehaviorengine.ui.ExcessivePowerManagerActivity")),
+                new Intent().setComponent(ComponentName.unflattenFromString("com.iqoo.powersaving/.PowerSavingManagerActivity"))
+        );
+    }
+
+    private void getAppDetailSetting() {
+        Intent localIntent = new Intent();
+        localIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (Build.VERSION.SDK_INT >= 9) {
+            localIntent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+            localIntent.setData(Uri.fromParts("package", this.cordova.getActivity().getPackageName(), null));
+        } else if (Build.VERSION.SDK_INT <= 8) {
+            localIntent.setAction(Intent.ACTION_VIEW);
+            localIntent.setClassName("com.android.settings", "com.android.settings.InstalledAppDetails");
+            localIntent.putExtra("com.android.settings.ApplicationPkgName", this.cordova.getActivity().getPackageName());
+        }
+
+        showToast(cordova.getActivity(),"请允许自启动，允许后台运行，设置后台运行无限制！");
+        localIntent.setData(Uri.parse("package:" + this.cordova.getActivity().getPackageName()));
+        localIntent.putExtra("package_name", this.cordova.getActivity().getPackageName());
+        //intent.putExtra("package_label", this.cordova.getActivity().getPackageManager().get);
+        this.cordova.getActivity().startActivity(localIntent);
+
+    }
+
+    private void requestPowerSavingPolicy(){
+        Activity activity = cordova.getActivity();
+        PackageManager pm = activity.getPackageManager();
+        for (Intent intent : getPowerSavingPolicyIntents())
+        {
+            if (pm.queryIntentActivities(intent, MATCH_DEFAULT_ONLY).size()>0)
+            {
+                showToast(cordova.getActivity(),"请设置省电策略为无限制");
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setData(Uri.parse("package:" + this.cordova.getActivity().getPackageName()));
+                intent.putExtra("package_name", this.cordova.getActivity().getPackageName());
+                //intent.putExtra("package_label", this.cordova.getActivity().getPackageManager().get);
+                activity.startActivity(intent);
+                break;
+            }
+        }
+    }
+
+    private List<Intent> getPowerSavingPolicyIntents(){
+
+        return Arrays.asList(
+                new Intent().setComponent(new ComponentName("com.huawei.systemmanager","com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity")),
+                new Intent().setComponent(new ComponentName("com.miui.powerkeeper", "com.miui.powerkeeper.ui.HiddenAppsConfigActivity"))
+        );
+    }
+
+    private boolean isIgnoringBackgroudDataRestrictions() {
+        boolean isIgnoring = false;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            ConnectivityManager connMgr = (ConnectivityManager)
+                    this.cordova.getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (connMgr.isActiveNetworkMetered()) {
+                // Checks user’s Data Saver settings.
+                switch (connMgr.getRestrictBackgroundStatus()) {
+                    case RESTRICT_BACKGROUND_STATUS_ENABLED:
+                        isIgnoring = false;
+                        // Background data usage is blocked for this app. Wherever possible,
+                        // the app should also use less data in the foreground.
+                    case RESTRICT_BACKGROUND_STATUS_WHITELISTED:
+                        isIgnoring = true;
+                        // The app is whitelisted. Wherever possible,
+                        // the app should use less data in the foreground and background.
+                    case RESTRICT_BACKGROUND_STATUS_DISABLED:
+                        isIgnoring = true;
+                        // Data Saver is disabled. Since the device is connected to a
+                        // metered network, the app should use less data wherever possible.
+                }
+            } else {
+                isIgnoring = true;
+                // The device is not on a metered network.
+                // Use data as required to perform syncs, downloads, and updates.
+            }
+        }else{
+            isIgnoring = true;
+        }
+
+        return isIgnoring;
+    }
+
+    private void requestIgnoreBackgroudDataRestrictions(CallbackContext callbackContext, JSONArray permissions) throws Exception {
+        while (!isIgnoringBackgroudDataRestrictions()) {
+            if(getForegroundActivity().equals(this.cordova.getActivity().getPackageName())) {
+                showToast(cordova.getActivity(),"请允许忽略后台数据限制！");
+                Intent intent = new Intent(Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS);
+                intent.setData(Uri.parse("package:" + this.cordova.getActivity().getPackageName()));
+                this.cordova.getActivity().startActivity(intent);
+            }else{
+                showToast(cordova.getActivity(),"请允许忽略后台数据限制！");
+            }
+            Thread.sleep(2000);
+        }
+        callbackContext.success("OK");
+    }
+
+    private int getScreenWakeStatus(){
+        int flag = this.cordova.getActivity().getWindow().getAttributes().flags;
+        //int bitValue = getBit(flag,7);
+        return (flag & (1 << 7)) > 0 ? 1 : 0;
+    }
 
     private void KeepScreenWakeOn(){
         this.cordova.getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -264,47 +489,24 @@ public class Permissions extends CordovaPlugin {
     {
         Activity activity = cordova.getActivity();
         PackageManager pm = activity.getPackageManager();
-
         for (Intent intent : getAppStartIntents())
         {
             if (pm.resolveActivity(intent, MATCH_DEFAULT_ONLY) != null)
             {
-                // JSONObject spec = (arg instanceof JSONObject) ? (JSONObject) arg : null;
-
+                showToast(cordova.getActivity(),"请允许自启动权限，锁屏不清理应用！");
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 activity.startActivity(intent);
-
-//                if (arg instanceof Boolean && !((Boolean) arg))
-//                {
-//
-//                    break;
-//                }
-
-                //AlertDialog.Builder dialog = new AlertDialog.Builder(activity, Theme_DeviceDefault_Light_Dialog);
-//
-//                dialog.setPositiveButton(ok, (o, d) -> activity.startActivity(intent));
-//                dialog.setNegativeButton(cancel, (o, d) -> {});
-//                dialog.setCancelable(true);
-//
-//                if (spec != null && spec.has("title"))
-//                {
-//                    dialog.setTitle(spec.optString("title"));
-//                }
-//
-//                if (spec != null && spec.has("text"))
-//                {
-//                    dialog.setMessage(spec.optString("text"));
-//                }
-//                else
-//                {
-//                    dialog.setMessage("missing text");
-//                }
-//
-//                activity.runOnUiThread(dialog::show);
-
                 break;
             }
         }
+    }
+
+    private List<Intent> getNetAppINtents(){
+
+        return Arrays.asList(
+                new Intent().setComponent(new ComponentName("com.huawei.systemmanager","com.huawei.systemmanager.netassistant.netapp.ui.NetAppListActivity")),
+                new Intent().setComponent(new ComponentName("com.miui.securitycenter","com.miui.networkassistant.ui.activity.FirewallActivity"))
+        );
     }
 
     private List<Intent> getAppStartIntents()
@@ -312,10 +514,13 @@ public class Permissions extends CordovaPlugin {
         return Arrays.asList(
                 new Intent().setComponent(new ComponentName("com.miui.securitycenter","com.miui.permcenter.autostart.AutoStartManagementActivity")),
                 new Intent().setComponent(new ComponentName("com.letv.android.letvsafe", "com.letv.android.letvsafe.AutobootManageActivity")),
-                new Intent().setComponent(new ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.appcontrol.activity.StartupAppControlActivity")),
                 new Intent().setComponent(new ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity")),
+                new Intent().setComponent(new ComponentName("com.huawei.systemmanager", Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity": "com.huawei.systemmanager.appcontrol.activity.StartupAppControlActivity")),
+                new Intent().setComponent(new ComponentName("com.coloros.oppoguardelf", "com.coloros.powermanager.fuelgaue.PowerUsageModelActivity")),
+                new Intent().setComponent(new ComponentName("com.coloros.oppoguardelf", "com.coloros.powermanager.fuelgaue.PowerSaverModeActivity")),
+                new Intent().setComponent(new ComponentName("com.coloros.oppoguardelf", "com.coloros.powermanager.fuelgaue.PowerConsumptionActivity")),
                 new Intent().setComponent(new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity")),
-                new Intent().setComponent(new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.startupapp.StartupAppListActivity")),
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ? new Intent().setComponent(new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.startupapp.StartupAppListActivity")).setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).setData(Uri.parse("package:"+ this.cordova.getContext().getPackageName())) : null,
                 new Intent().setComponent(new ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity")),
                 new Intent().setComponent(new ComponentName("com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity")),
                 new Intent().setComponent(new ComponentName("com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.BgStartUpManager")),
@@ -332,6 +537,25 @@ public class Permissions extends CordovaPlugin {
         );
     }
 
+
+    //region Do not disturb
+    private int DNDstatus() throws Exception {
+        NotificationManager notificationManager = (NotificationManager) this.cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M){
+            while (!notificationManager.isNotificationPolicyAccessGranted()){
+                if(getForegroundActivity().equals(this.cordova.getActivity().getPackageName())) {
+                    showToast(cordova.getActivity(),"请允许“勿扰“权限！");
+                    Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+                    this.cordova.getActivity().startActivity(intent);
+                }
+                Thread.sleep(2000);
+            }
+            int current = notificationManager.getCurrentInterruptionFilter();
+            return current;
+        }else{
+            return -1;
+        }
+    }
 
 
     private void DNDon(CallbackContext callbackContext) throws Exception {
@@ -353,7 +577,7 @@ public class Permissions extends CordovaPlugin {
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M){
             while (!notificationManager.isNotificationPolicyAccessGranted()){
                 if(getForegroundActivity().equals(this.cordova.getActivity().getPackageName())) {
-                    showToast(cordova.getActivity(),"工作需要勿扰权限，请在跳转授权！");
+                    showToast(cordova.getActivity(),"请允许“勿扰“ 权限！");
                     Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
                     this.cordova.getActivity().startActivity(intent);
                 }
@@ -365,6 +589,7 @@ public class Permissions extends CordovaPlugin {
         }
 
     }
+    //endregion
 
     /**
      * 跳转到指定应用的首页
@@ -414,12 +639,12 @@ public class Permissions extends CordovaPlugin {
     public void requestIgnoreBatteryOptimizations(CallbackContext callbackContext, JSONArray permissions) throws Exception {
         while (!isIgnoringBatteryOptimizations()) {
             if(getForegroundActivity().equals(this.cordova.getActivity().getPackageName())) {
-                showToast(cordova.getActivity(),"正在跳转授权电池优化,允许后台运行");
+                showToast(cordova.getActivity(),"请允许忽略电池优化");
                 Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                 intent.setData(Uri.parse("package:" + this.cordova.getActivity().getPackageName()));
                 this.cordova.getActivity().startActivity(intent);
             }else{
-                showToast(cordova.getActivity(),"请授权电池优化,允许后台运行");
+                showToast(cordova.getActivity(),"请允许忽略电池优化");
             }
             Thread.sleep(2000);
         }

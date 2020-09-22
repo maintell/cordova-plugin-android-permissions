@@ -223,6 +223,32 @@ Permissions.prototype = {
             permissions
         );
     },
+    isIgnoringBackgroudDataRestrictions: function (
+        permissions,
+        successCallback,
+        errorCallback
+    ) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "isIgnoringBackgroudDataRestrictions",
+            permissions
+        );
+    },
+    requestIgnoreBackgroudDataRestrictions: function (
+        permissions,
+        successCallback,
+        errorCallback
+    ) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "requestIgnoreBackgroudDataRestrictions",
+            permissions
+        );
+    },
     isIgnoringBatteryOptimizations: function (
         permissions,
         successCallback,
@@ -278,6 +304,42 @@ Permissions.prototype = {
             errorCallback,
             permissionsName,
             "clearScreenWakeOn",
+            [mode]
+        );
+    },
+    getScreenWakeStatus: function (mode, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "getScreenWakeStatus",
+            [mode]
+        );
+    },
+    requestPowerSavingPolicy: function (mode, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "requestPowerSavingPolicy",
+            [mode]
+        );
+    },
+    getAppDetailSetting: function (mode, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "getAppDetailSetting",
+            [mode]
+        );
+    },
+    requestBatterySettings: function (mode, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "requestBatterySettings",
             [mode]
         );
     },
