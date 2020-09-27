@@ -343,6 +343,64 @@ Permissions.prototype = {
             [mode]
         );
     },
+    verifyStoragePermissions: function (mode, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "verifyStoragePermissions",
+            [mode]
+        );
+    },
+    getSystemBrightnessMode: function (mode, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "getSystemBrightnessMode",
+            [mode]
+        );
+    },
+    setSystemBrightnessMode: function (mode, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "setSystemBrightnessMode",
+            [mode]
+        );
+    },
+    setSystemBrightness: function (mode, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "setSystemBrightness",
+            [mode]
+        );
+    },
+    getSystemBrightness: function (mode, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "getSystemBrightness",
+            mode
+        );
+    },
+    requestWriteSettingsPermission: function (
+        mode,
+        successCallback,
+        errorCallback
+    ) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            permissionsName,
+            "requestWriteSettingsPermission",
+            [mode]
+        );
+    },
 };
 
 Permissions.prototype.hasPermission = function (
